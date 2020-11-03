@@ -19,7 +19,7 @@ from model.deep_face import detect_face, estimate_head_pose, \
 if __name__ == "__main__":
     torch.set_grad_enabled(False) # disable auto grad
     root_path = 'F:\\DATA\\Biwi_Kinect_Head_Pose_Database\\03'
-    index = '00738'
+    index = '00093'
     img_path = os.path.join(
         root_path, f'frame_{index}_rgb.png'
     )
