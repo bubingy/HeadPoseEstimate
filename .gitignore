@@ -127,3 +127,16 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Editor Configurations
+.vscode
+
+# pytorch model
+*.pkl
+*.pt
+*.pth
+*.pth.tar
+
+# numpy
+*.npy
+*.npz
