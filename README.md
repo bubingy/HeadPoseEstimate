@@ -13,9 +13,13 @@ The horizontal direction `hd` and vertical direction `vd` of face can be determi
 ### 3. Estimate rotation
 Normalize `hd`, `vd` and `fd`, make them as unit vectors. 
 Rotation transform from  
-   | 1  0  0 |    | hd |
-   | 0  1  0 | to | vd |
-   | 0  0  1 |    | fd |
+   | 1  0  0 |  
+   | 0  1  0 |  
+   | 0  0  1 |  
+   to
+   | hd |  
+   | vd |  
+   | fd |  
 can be estimated with Kabsch algorithm.
 ## Get head pose directly from a network 
 I highly recommend you to take a look at [Hopenet](https://github.com/natanielruiz/deep-head-pose).
