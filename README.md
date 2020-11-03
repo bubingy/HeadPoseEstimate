@@ -1,5 +1,3 @@
-<script type="text/javascript" async src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML"></script>
 # HeadPoseEstimate
 ## Introduce
 This is a head pose estimation system based on 3d facial landmarks. Please realize it's not the most advanced method in this field. Util I created this repository, there have been some end-to-end solutions.
@@ -13,26 +11,11 @@ Thanks for 1adrianb's [excellent work](https://github.com/1adrianb/face-alignmen
 ### 2. Determine direction of face
 The horizontal direction `hd` and vertical direction `vd` of face can be determined by PCA. Then the facial orientation `fd = hd x vd`, where `x` is cross products. 
 ### 3. Estimate rotation
-Normalize `hd`, `vd` and `fd`, make them as unit vectors. Rotation transform from  
-$$
-\left[
-    \begin{matrix} 
-    1 & 0 & 0 \\ 
-    0 & 1 & 0 \\ 
-    0 & 0 & 1 
-    \end{matrix}
-]
-$$
-to  
-$$
-\left[
-    \begin{matrix} 
-    hd \\ 
-    vd \\ 
-    fd 
-    \end{matrix}
-]
-$$
+Normalize `hd`, `vd` and `fd`, make them as unit vectors. 
+Rotation transform from  
+   | 1  0  0 |    | hd |
+   | 0  1  0 | to | vd |
+   | 0  0  1 |    | fd |
 can be estimated with Kabsch algorithm.
 ## Get head pose directly from a network 
 I highly recommend you to take a look at [Hopenet](https://github.com/natanielruiz/deep-head-pose).
