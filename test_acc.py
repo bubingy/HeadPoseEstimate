@@ -9,11 +9,12 @@ import torchvision
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import io
 
 from model.mtcnn import MTCNN
 from model.face_alignment import FaceAlignment
 from model.deep_face import detect_face, estimate_head_pose
-from utils.utils import *
+from utils.utils import data_loader, get_num_of_images
 from utils.global_vars import *
 
 
@@ -34,9 +35,7 @@ def calculate_error():
             return
         mutex.release()
 
-        label = get_euler_angles_from_rotation_matrix(
-            get_mat_from_txt(label_path), 'zyx'
-        )
+        label = np.rad2deg(io.loadmat(label_path)['Pose_Para'][0][:3])
 
         img = Image.open(img_path)
 
@@ -68,7 +67,7 @@ def task_runner(root_directory: str):
         root_directory: directory where store images and label files.
     """
     global num_images
-    num_tasks = min(cpu_count() - 1, num_images)
+    num_tasks = min(cpu_count(), num_images)
     tasks_list = []
     for _ in range(num_tasks):
         task = Thread(target=calculate_error)
@@ -79,7 +78,7 @@ def task_runner(root_directory: str):
 
 
 if __name__ == "__main__":
-    root_directory = 'F:\\DATA\\Biwi_Kinect_Head_Pose_Database\\01'
+    root_directory = 'F:\\DATA\\300W_LP\\Test'
 
     torch.set_grad_enabled(False)
 

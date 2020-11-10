@@ -180,15 +180,22 @@ def get_num_of_images(root_directory: str) -> int:
 
     return: path of image and its label file.
     """
+    img_ext = {'.png', '.jpg', '.bmp', '.jpeg'}
     num_of_images = 0
     for root, _, files in os.walk(root_directory):
         for f in files:
-            if f[-3:] != 'png':
+            if os.path.splitext(f)[-1] not in img_ext:
                 continue
-            label_path = os.path.join(
-                root, f.replace('rgb.png', 'pose.txt')
-            )
-            if os.path.exists(label_path) is False:
+            img_path = os.path.join(root, f)
+            if 'Biwi_Kinect_Head_Pose' in img_path:
+                label_path = os.path.join(
+                    root, f.replace('rgb.png', 'pose.txt')
+                )
+            elif '300W_LP' in img_path:
+                label_path = os.path.join(
+                    root, f.replace('.jpg', '.mat')
+                )
+            else:
                 continue
             num_of_images += 1
     return num_of_images
@@ -201,14 +208,22 @@ def data_loader(root_directory: str):
 
     return: path of image and its label file.
     """
+    img_ext = {'.png', '.jpg', '.bmp', '.jpeg'}
     for root, _, files in os.walk(root_directory):
         for f in files:
-            if f[-3:] != 'png':
+            if os.path.splitext(f)[-1] not in img_ext:
                 continue
             img_path = os.path.join(root, f)
-            label_path = os.path.join(
-                root, f.replace('rgb.png', 'pose.txt')
-            )
+            if 'Biwi_Kinect_Head_Pose' in img_path:
+                label_path = os.path.join(
+                    root, f.replace('rgb.png', 'pose.txt')
+                )
+            elif '300W_LP' in img_path:
+                label_path = os.path.join(
+                    root, f.replace('.jpg', '.mat')
+                )
+            else:
+                label_path = ''
             if os.path.exists(label_path) is False:
                 continue
             yield (img_path, label_path)

@@ -6,8 +6,6 @@ import json
 import numpy as np
 import torch
 from PIL import Image
-from sklearn.decomposition import PCA
-from scipy.spatial.transform import Rotation
 
 from utils.utils import get_mat_from_txt, save_data_into_js, \
     get_euler_angles_from_rotation_matrix
