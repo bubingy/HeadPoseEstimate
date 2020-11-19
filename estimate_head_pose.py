@@ -2,31 +2,29 @@
 
 import os
 import json
+import argparse
+import webbrowser
 
 import numpy as np
 import torch
 from PIL import Image
 
-from utils.utils import get_mat_from_txt, save_data_into_js, \
-    get_euler_angles_from_rotation_matrix
 from model.face_alignment import FaceAlignment
 from model.mtcnn import MTCNN
 from model.deep_face import detect_face, estimate_head_pose, \
     get_direction_from_landmarks
+from utils.utils import save_data_into_js
+
 
 if __name__ == "__main__":
     torch.set_grad_enabled(False) # disable auto grad
-    root_path = 'F:\\DATA\\Biwi_Kinect_Head_Pose_Database\\03'
-    index = '00093'
-    img_path = os.path.join(
-        root_path, f'frame_{index}_rgb.png'
-    )
-    label_path = os.path.join(
-        root_path, f'frame_{index}_pose.txt'
-    )
+    parser = argparse.ArgumentParser(description='estimate head pose.')
+    parser.add_argument('-i', '--image-path', required=True,
+                        help="path of image.")
+    args = parser.parse_args()
+    img_path = args.img_path
     img = Image.open(img_path)
-    mtx = get_mat_from_txt(label_path)
-    label = get_euler_angles_from_rotation_matrix(mtx, 'zyx')
+
     # initialize three networks
     # mtcnn: face detection
     # face_alighment: get 68 face landmarks
@@ -42,7 +40,6 @@ if __name__ == "__main__":
     # calculate Euler angle
     rotation, landmarks = estimate_head_pose(img, bound_box, face_alighment, True)
     
-    print('label: ', label)
     print('predict: ', rotation)
     
     direction = get_direction_from_landmarks(landmarks)
@@ -69,8 +66,14 @@ if __name__ == "__main__":
             "direction": direction_d.tolist()
         }
     ]
+
+    plot_dir = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        '3DPlot'
+    )
     save_data_into_js(
         landmarks, 
-        arrows, 
-        'F:\\Workspace\\3DPlot\\js\\data.js'
+        arrows,
+        os.path.join(plot_dir, 'js', 'data.js')
     )
+    webbrowser.open(os.path.join(plot_dir, 'index.html'))

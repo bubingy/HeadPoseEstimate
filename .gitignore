@@ -132,9 +132,6 @@ dmypy.json
 .vscode
 
 # pytorch model
-*.pkl
-*.pt
-*.pth
 *.pth.tar
 
 # numpy
