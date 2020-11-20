@@ -22,7 +22,7 @@ if __name__ == "__main__":
     parser.add_argument('-i', '--image-path', required=True,
                         help="path of image.")
     args = parser.parse_args()
-    img_path = args.img_path
+    img_path = args.image_path
     img = Image.open(img_path)
 
     # initialize three networks
