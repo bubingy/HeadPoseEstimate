@@ -8,10 +8,10 @@ from torchvision import transforms
 from PIL import Image
 import numpy as np
 from sklearn.decomposition import PCA
-from scipy.spatial.transform import Rotation
 
 from model.face_alignment import FaceAlignment
 from utils.utils import get_euler_angles_from_rotation_matrix
+
 
 def compose_transformation(trans_sequence: list) -> transforms.transforms:
     """Define a pipeline-like object that contains one or more transformation.
@@ -50,21 +50,20 @@ def get_direction_from_landmarks(landmarks: list):
     Returns:
         3 vector which can indicate face direction.
     """
-    # TODO: pca returns a rough result which isn't the optimal most of time.
     pca = PCA(n_components=2)
     pca.fit(landmarks[17:])
     direction_h = -pca.components_[1]
-    if direction_h[0] < 0:
+    if np.dot(direction_h, landmarks[45]-landmarks[36]) < 0:
         direction_h *= -1
     direction_h /= np.linalg.norm(direction_h)
     
     direction_v = pca.components_[0]
-    if direction_v[1] < 0:
+    if np.dot(direction_v, landmarks[30]-landmarks[8]) < 0:
         direction_v *= -1
     direction_v /= np.linalg.norm(direction_v)
 
     direction_d = np.cross(direction_h, direction_v)
-    if direction_d[2] < 0:
+    if np.dot(direction_d, landmarks[30] - (landmarks[31]+landmarks[35]) / 2) < 0:
         direction_d *= -1
     direction_d /= np.linalg.norm(direction_d)
     return np.array([direction_h, direction_v, direction_d])
@@ -128,7 +127,7 @@ def estimate_head_pose(image: Image.Image,
             [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
         )
     )
-    Euler_angle = get_euler_angles_from_rotation_matrix(rotation_matrix, 'zyx')
+    Euler_angle = get_euler_angles_from_rotation_matrix(rotation_matrix)
     Euler_angle *= np.array([-1, -1, 1])
     if debug:
         return Euler_angle, landmarks

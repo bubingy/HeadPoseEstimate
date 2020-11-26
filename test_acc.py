@@ -14,7 +14,8 @@ from scipy import io
 from model.mtcnn import MTCNN
 from model.face_alignment import FaceAlignment
 from model.deep_face import detect_face, estimate_head_pose
-from utils.utils import data_loader, get_num_of_images
+from utils.utils import data_loader, get_num_of_images, \
+    get_euler_angles_from_rotation_matrix, get_mat_from_txt
 from utils.global_vars import *
 
 
@@ -35,7 +36,9 @@ def calculate_error():
             return
         mutex.release()
 
-        label = np.rad2deg(io.loadmat(label_path)['Pose_Para'][0][:3])
+        label = get_euler_angles_from_rotation_matrix(
+            get_mat_from_txt(label_path)
+        )
 
         img = Image.open(img_path)
 
@@ -49,6 +52,11 @@ def calculate_error():
         predict = estimate_head_pose(img, bound_box, face_alighment)
 
         err = np.abs(np.abs(predict) - np.abs(label))
+        # if max(err) > 100:
+        #     print(img_path)
+        #     print('label: ', label)
+        #     print('predict: ', predict)
+        #     input()
 
         mutex.acquire()
         roll_error_list.append([label[0], err[0]])
@@ -78,7 +86,7 @@ def task_runner(root_directory: str):
 
 
 if __name__ == "__main__":
-    root_directory = 'F:\\DATA\\300W_LP\\Test'
+    root_directory = 'F:\\DATA\\Biwi_Kinect_Head_Pose_Database\\03'
 
     torch.set_grad_enabled(False)
 

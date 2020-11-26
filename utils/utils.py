@@ -30,138 +30,36 @@ def get_mat_from_txt(file_path:str) -> np.ndarray:
     return np.array(rotation)
 
 
-def get_euler_angles_from_rotation_matrix(matrix, seq):
+def get_euler_angles_from_rotation_matrix(matrix):
     """Convert rotation matrix to Euler angles
     
     Args:
         matrix: rotation matrix
-
-    return: Euler angles
+    return: 
+        Euler angles
     """
-    extrinsic = (re.match(r'^[xyz]{1,3}$', seq) is not None)
-    seq = seq.lower()
-    _elementary_basis_vector = {
-        'x': np.array([1, 0, 0]),
-        'y': np.array([0, 1, 0]),
-        'z': np.array([0, 0, 1])
-    }
-    if extrinsic:
-        seq = seq[::-1]
+    m00 = matrix[0][0]
+    m02 = matrix[0][2]
+    m10 = matrix[1][0]
+    m11 = matrix[1][1]
+    m12 = matrix[1][2]
+    m20 = matrix[2][0]
+    m22 = matrix[2][2]
 
-    if matrix.ndim == 2:
-        matrix = matrix[None, :, :]
-    num_rotations = matrix.shape[0]
-
-    # Step 0
-    # Algorithm assumes axes as column vectors, here we use 1D vectors
-    n1 = _elementary_basis_vector[seq[0]]
-    n2 = _elementary_basis_vector[seq[1]]
-    n3 = _elementary_basis_vector[seq[2]]
-
-    # Step 2
-    sl = np.dot(np.cross(n1, n2), n3)
-    cl = np.dot(n1, n3)
-
-    # angle offset is lambda from the paper referenced in [2] from docstring of
-    # `as_euler` function
-    offset = np.arctan2(sl, cl)
-    c = np.vstack((n2, np.cross(n1, n2), n1))
-
-    # Step 3
-    rot = np.array([
-        [1, 0, 0],
-        [0, cl, sl],
-        [0, -sl, cl],
-    ])
-    res = np.einsum('...ij,...jk->...ik', c, matrix)
-    matrix_transformed = np.einsum('...ij,...jk->...ik', res, c.T.dot(rot))
-
-    # Step 4
-    angles = np.empty((num_rotations, 3))
-    # Ensure less than unit norm
-    positive_unity = matrix_transformed[:, 2, 2] > 1
-    negative_unity = matrix_transformed[:, 2, 2] < -1
-    matrix_transformed[positive_unity, 2, 2] = 1
-    matrix_transformed[negative_unity, 2, 2] = -1
-    angles[:, 1] = np.arccos(matrix_transformed[:, 2, 2])
-
-    # Steps 5, 6
-    eps = 1e-7
-    safe1 = (np.abs(angles[:, 1]) >= eps)
-    safe2 = (np.abs(angles[:, 1] - np.pi) >= eps)
-
-    # Step 4 (Completion)
-    angles[:, 1] += offset
-
-    # 5b
-    safe_mask = np.logical_and(safe1, safe2)
-    angles[safe_mask, 0] = np.arctan2(matrix_transformed[safe_mask, 0, 2],
-                                      -matrix_transformed[safe_mask, 1, 2])
-    angles[safe_mask, 2] = np.arctan2(matrix_transformed[safe_mask, 2, 0],
-                                      matrix_transformed[safe_mask, 2, 1])
-
-    if extrinsic:
-        # For extrinsic, set first angle to zero so that after reversal we
-        # ensure that third angle is zero
-        # 6a
-        angles[~safe_mask, 0] = 0
-        # 6b
-        angles[~safe1, 2] = np.arctan2(matrix_transformed[~safe1, 1, 0]
-                                       - matrix_transformed[~safe1, 0, 1],
-                                       matrix_transformed[~safe1, 0, 0]
-                                       + matrix_transformed[~safe1, 1, 1])
-        # 6c
-        angles[~safe2, 2] = -np.arctan2(matrix_transformed[~safe2, 1, 0]
-                                        + matrix_transformed[~safe2, 0, 1],
-                                        matrix_transformed[~safe2, 0, 0]
-                                        - matrix_transformed[~safe2, 1, 1])
+    if m10 > 0.998:
+        bank = 0
+        attitude = np.pi/2
+        heading = np.arctan2(m02, m22)
+    elif m10 < -0.998:
+        bank = 0
+        attitude = -np.pi/2
+        heading = np.arctan2(m02, m22)
     else:
-        # For instrinsic, set third angle to zero
-        # 6a
-        angles[~safe_mask, 2] = 0
-        # 6b
-        angles[~safe1, 0] = np.arctan2(matrix_transformed[~safe1, 1, 0]
-                                       - matrix_transformed[~safe1, 0, 1],
-                                       matrix_transformed[~safe1, 0, 0]
-                                       + matrix_transformed[~safe1, 1, 1])
-        # 6c
-        angles[~safe2, 0] = np.arctan2(matrix_transformed[~safe2, 1, 0]
-                                       + matrix_transformed[~safe2, 0, 1],
-                                       matrix_transformed[~safe2, 0, 0]
-                                       - matrix_transformed[~safe2, 1, 1])
-
-    # Step 7
-    if seq[0] == seq[2]:
-        # lambda = 0, so we can only ensure angle2 -> [0, pi]
-        adjust_mask = np.logical_or(angles[:, 1] < 0, angles[:, 1] > np.pi)
-    else:
-        # lambda = + or - pi/2, so we can ensure angle2 -> [-pi/2, pi/2]
-        adjust_mask = np.logical_or(angles[:, 1] < -np.pi / 2,
-                                    angles[:, 1] > np.pi / 2)
-
-    # Dont adjust gimbal locked angle sequences
-    adjust_mask = np.logical_and(adjust_mask, safe_mask)
-
-    angles[adjust_mask, 0] += np.pi
-    angles[adjust_mask, 1] = 2 * offset - angles[adjust_mask, 1]
-    angles[adjust_mask, 2] -= np.pi
-
-    angles[angles < -np.pi] += 2 * np.pi
-    angles[angles > np.pi] -= 2 * np.pi
-
-    # Step 8
-    if not np.all(safe_mask):
-        print("Gimbal lock detected. Setting third angle to zero since"
-                      " it is not possible to uniquely determine all angles.")
-
-    # Reverse role of extrinsic and intrinsic rotations, but let third angle be
-    # zero for gimbal locked cases
-    if extrinsic:
-        angles = angles[:, ::-1]
-    angles = np.rad2deg(angles[0])
-    # angles *= np.array([-1, -1, 1])
-    return angles
-
+        bank = np.arctan2(-m12, m11)
+        attitude = np.arcsin(m10)
+        heading = np.arctan2(-m20, m00)
+    return  np.rad2deg(np.array([attitude, heading, bank]))
+        
 
 def save_data_into_js(points: list, arrows: list, js_path: str):
     plot_data = {}
