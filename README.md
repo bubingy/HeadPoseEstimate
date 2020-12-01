@@ -3,10 +3,7 @@
 This is a head pose estimation system based on 3d facial landmarks. Please realize it's not the most advanced method in this field. Util I created this repository, there have been some end-to-end solutions.
 
 ## Usage
-1. Download https://www.adrianbulat.com/downloads/python-fan/3DFAN4-7835d9f11d.pth.tar to `model` and rename it as `3DFAN4.pth.tar`.
-2. Download https://www.adrianbulat.com/downloads/python-fan/depth-2a464da4ea.pth.tar to `model` and rename it as `depth.pth.tar`.
-3. Run `python estimate_head_pose.py -i <path of image>`. The webbrowser will be opened to show 3d landmarks.
-
+Run `python estimate_head_pose.py -i <path of image>`. The webbrowser will be opened to show 3d landmarks.
 
 ## How does it work
 ### 1. Get the 3d facial landmarks

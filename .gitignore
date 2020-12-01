@@ -131,9 +131,6 @@ dmypy.json
 # Editor Configurations
 .vscode
 
-# pytorch model
-*.pth.tar
-
 # numpy
 *.npy
 *.npz
