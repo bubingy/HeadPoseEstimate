@@ -37,14 +37,17 @@ if __name__ == "__main__":
 
     tic = time.time()
     bound_box = detect_face(img, mtcnn)
+    toc = time.time()
+    print(f'use {toc - tic}s to detect face')
     if bound_box is None:
         print('no face detected.')
         exit(0)
 
     # calculate Euler angle
+    tic = time.time()
     rotation, landmarks = estimate_head_pose(img, bound_box, tddfa, True)
     toc = time.time()
-    print(f'spend: {toc - tic}')
+    print(f'use {toc - tic}s to estimate pose')
     print('predict: ', rotation)
     
     direction = get_direction_from_landmarks(landmarks)
@@ -81,4 +84,4 @@ if __name__ == "__main__":
         arrows,
         os.path.join(plot_dir, 'js', 'data.js')
     )
-    webbrowser.open(os.path.join(plot_dir, 'index.html'))
+    # webbrowser.open(os.path.join(plot_dir, 'index.html'))

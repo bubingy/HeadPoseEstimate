@@ -12,7 +12,7 @@ The three yellow arrows are `hd`, `vd` and `fd` while the purple arrows are real
 
 ## How does it work
 ### 1. Get the 3d facial landmarks
-Thanks for 1adrianb's [excellent work](https://github.com/1adrianb/face-alignment), we can easily get the 3d facial landmarks.
+Thanks for cleardusk's [excellent work](https://github.com/cleardusk/3DDFA_V2), we can easily get the 3d facial landmarks.
 ### 2. Determine direction of face
 The horizontal direction `hd` and vertical direction `vd` of face can be determined by PCA. Let's notate facial orientation with `fd`, then `fd = hd x vd`. Note: `x` is cross products.  
 Here is an example. The origin image(from Biwi_Kinect_Head_Pose_Database):
@@ -47,3 +47,19 @@ The overlapped error can't be ignored.
 In the end, let me point out the shortcomings of our mothod:
 1. The result depend on 3d facial landmarks. High error we'll get if the 3d facial landmarks are not accurate.
 2. It's not real-time. PCA, SVD are involved.
+
+## Citation
+
+    @inproceedings{guo2020towards,
+        title =        {Towards Fast, Accurate and Stable 3D Dense Face Alignment},
+        author =       {Guo, Jianzhu and Zhu, Xiangyu and Yang, Yang and Yang, Fan and Lei, Zhen and Li, Stan Z},
+        booktitle =    {Proceedings of the European Conference on Computer Vision (ECCV)},
+        year =         {2020}
+    }
+
+    @misc{3ddfa_cleardusk,
+        author =       {Guo, Jianzhu and Zhu, Xiangyu and Lei, Zhen},
+        title =        {3DDFA},
+        howpublished = {\url{https://github.com/cleardusk/3DDFA}},
+        year =         {2018}
+    }
