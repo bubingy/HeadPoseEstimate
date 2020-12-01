@@ -5,12 +5,17 @@ This is a head pose estimation system based on 3d facial landmarks. Please reali
 ## Usage
 Run `python estimate_head_pose.py -i <path of image>`. The webbrowser will be opened to show 3d landmarks.
 
+Additionally, to test against images in AFLW2000, just run `python estimate_err.py -i <path of image> -l <label of path>`.  
+The three yellow arrows are `hd`, `vd` and `fd` while the purple arrows are real orientations.
+![origin image](figures/err.png)
+
+
 ## How does it work
 ### 1. Get the 3d facial landmarks
 Thanks for 1adrianb's [excellent work](https://github.com/1adrianb/face-alignment), we can easily get the 3d facial landmarks.
 ### 2. Determine direction of face
 The horizontal direction `hd` and vertical direction `vd` of face can be determined by PCA. Let's notate facial orientation with `fd`, then `fd = hd x vd`. Note: `x` is cross products.  
-Here is an example. The origin image:
+Here is an example. The origin image(from Biwi_Kinect_Head_Pose_Database):
 ![origin image](figures/origin_image.png)
 
 The following image shows 68 landmarks.  

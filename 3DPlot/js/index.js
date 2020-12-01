@@ -17,7 +17,7 @@ function createGeometry()
 
     scene.add(plot);
 
-    for (arrow of data["arrows"]) {
+    for (arrow of data["arrows"].slice(0,3)) {
         let arrowPosition = new THREE.Vector3(
             arrow["position"][0],
             arrow["position"][1],
@@ -32,6 +32,24 @@ function createGeometry()
             arrowDirection, arrowPosition, 20, 0xffff00, 0.25, 0.08 
         );
         scene.add(arrowHelper);
+    }
+    if (data["arrows"].length == 6) {
+        for (arrow of data["arrows"].slice(3, 6)) {
+            let arrowPosition = new THREE.Vector3(
+                arrow["position"][0],
+                arrow["position"][1],
+                arrow["position"][2]
+            );
+            let arrowDirection = new THREE.Vector3(
+                arrow["direction"][0],
+                arrow["direction"][1],
+                arrow["direction"][2]
+            );
+            arrowHelper = new THREE.ArrowHelper( 
+                arrowDirection, arrowPosition, 20, 0xff00ff, 0.25, 0.08 
+            );
+            scene.add(arrowHelper);
+        }
     }
 }    
 

@@ -5,6 +5,7 @@ import os
 import json
 
 import numpy as np
+from scipy import io
 
 def get_mat_from_txt(file_path:str) -> np.ndarray:
     """ Get rotation matrix from txt file
@@ -28,6 +29,12 @@ def get_mat_from_txt(file_path:str) -> np.ndarray:
         )
         rotation.append(list(row))
     return np.array(rotation)
+
+
+def get_label_from_mat(label_path: str):
+    mat = io.loadmat(label_path)
+    label = np.rad2deg(mat['Pose_Para'][0][:3])
+    return [label[2], -label[1], -label[0]]
 
 
 def get_euler_angles_from_rotation_matrix(matrix):
