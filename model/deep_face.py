@@ -9,7 +9,7 @@ from PIL import Image
 import numpy as np
 from sklearn.decomposition import PCA
 
-from model.face_alignment import FaceAlignment
+from model.FaceAlignment3D.TDDFA import TDDFA
 from utils.utils import get_euler_angles_from_rotation_matrix
 
 
@@ -33,9 +33,14 @@ def detect_face(img: Image.Image, model: torch.nn.Module) -> list:
         empty list: No face is found in the image.
     """
     # detect faces in the image, return -1 if there is no face detected
-    boxes, probs = model.detect(img)
+    try:
+        boxes, probs, _ = model.detect(img)
+    except Exception as e:
+        print(e)
+        return None
+
     if len(boxes) == 0:
-        return []
+        return None
 
     # since in our scenario, there is only one face in the image
     # we will choose the most likely one
@@ -43,7 +48,7 @@ def detect_face(img: Image.Image, model: torch.nn.Module) -> list:
     return boxes[choosen_idx]
 
 
-def get_direction_from_landmarks(landmarks: list):
+def get_direction_from_landmarks(landmarks: list) -> np.ndarray:
     """Get the direction of face from landmarks.
     Args:
         landmarks: a set of facial key points.
@@ -69,7 +74,7 @@ def get_direction_from_landmarks(landmarks: list):
     return np.array([direction_h, direction_v, direction_d])
 
 
-def estimate_best_rotation(transformed, origin):
+def estimate_best_rotation(transformed: np.ndarray, origin: np.ndarray) -> np.ndarray:
     """Find optimal rotation between corresponding 3d points.
 
     Args:
@@ -104,7 +109,7 @@ def estimate_best_rotation(transformed, origin):
 
 def estimate_head_pose(image: Image.Image, 
                        face_roi: np.ndarray, 
-                       model: FaceAlignment,
+                       model: TDDFA,
                        debug=False) -> np.ndarray:
     """Estimate head pose.
     Args:
@@ -114,11 +119,12 @@ def estimate_head_pose(image: Image.Image,
     Returns:
         yaw, pitch, roll of the face
     """
-    image = np.array(image)
-    landmarks = model.get_landmarks(image, face_roi)
+    param_lst, roi_box_lst = model(image, [face_roi])
+    ver_lst = model.recon_vers(param_lst, roi_box_lst)
 
+    landmarks = ver_lst[0].T
     for i in range(len(landmarks)):
-        landmarks[i][1] = -1 * landmarks[i][1]
+        landmarks[i][1] *= -1
 
     direction = get_direction_from_landmarks(landmarks)
     rotation_matrix = estimate_best_rotation(
