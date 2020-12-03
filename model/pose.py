@@ -15,8 +15,9 @@ def naive_pca(data):
     Return:
         components
     """
-    data -= np.mean(data, axis=0)
-    _, _, vt = np.linalg.svd(data, full_matrices=False)
+    X = np.copy(data)
+    X -= np.mean(X, axis=0)
+    _, _, vt = np.linalg.svd(X, full_matrices=False)
     return vt
 
 

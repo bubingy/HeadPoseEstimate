@@ -1,19 +1,17 @@
+"""Test against Biwi Kinect Head Pose Database"""
 # coding=utf-8
 
-import os
 from threading import Thread, Lock
 from multiprocessing import cpu_count
 
 import torch
-import torchvision
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import io
 
-from model.mtcnn import MTCNN
-from model.face_alignment import FaceAlignment
-from model.deep_face import detect_face, estimate_head_pose
+from model.FaceDetection.FaceBoxes import FaceBoxes
+from model.FaceAlignment3D.TDDFA import TDDFA
+from model.pose import estimate_head_pose, get_direction_from_landmarks
 from utils.utils import data_loader, get_num_of_images, \
     get_euler_angles_from_rotation_matrix, get_mat_from_txt
 from utils.global_vars import *
@@ -22,8 +20,8 @@ from utils.global_vars import *
 def calculate_error():
     global roll_error_list, yaw_error_list, pitch_error_list, mutex, data, num_images
 
-    mtcnn = MTCNN(image_size=224, device=torch.device('cpu'))
-    face_alighment = FaceAlignment('model/3DFAN4.pth.tar', 'model/depth.pth.tar')
+    face_boxes = FaceBoxes()
+    tddfa = TDDFA()
 
     while True:
         img_path = ''
@@ -36,27 +34,23 @@ def calculate_error():
             return
         mutex.release()
 
+        img = Image.open(img_path)
         label = get_euler_angles_from_rotation_matrix(
             get_mat_from_txt(label_path)
         )
 
-        img = Image.open(img_path)
-
-        bound_box = None
-        try:
-            bound_box = detect_face(img, mtcnn)
-        except Exception:
+        bboxes = face_boxes(img)
+        if len(bboxes) == 0:
             continue
+        bound_box = bboxes[np.argmax(bboxes[:,4])]
 
-        # calculate Euler angle
-        predict = estimate_head_pose(img, bound_box, face_alighment)
+        param_lst, roi_box_lst = tddfa(img, [bound_box])
+        ver_lst = tddfa.recon_vers(param_lst, roi_box_lst)
+        landmarks = ver_lst[0]
 
-        err = np.abs(np.abs(predict) - np.abs(label))
-        # if max(err) > 100:
-        #     print(img_path)
-        #     print('label: ', label)
-        #     print('predict: ', predict)
-        #     input()
+        rotation = estimate_head_pose(landmarks)
+
+        err = np.abs(np.abs(rotation) - np.abs(label))
 
         mutex.acquire()
         roll_error_list.append([label[0], err[0]])

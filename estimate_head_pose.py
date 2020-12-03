@@ -26,7 +26,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '-d', '--draw',
         action='store_true',
-        default=False,
+        default=True,
         help="whether to openbrowser to show landmarks and face orientation."
     )
     args = parser.parse_args()

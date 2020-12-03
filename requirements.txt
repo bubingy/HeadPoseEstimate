@@ -2,3 +2,4 @@ torch
 torchvision
 pillow
 numpy
+scipy # only necessary when running estimate_err.py
