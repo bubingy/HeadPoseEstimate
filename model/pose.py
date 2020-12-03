@@ -2,45 +2,43 @@
 
 # coding=utf-8
 
-from torchvision import transforms
-from PIL import Image
 import numpy as np
-from sklearn.decomposition import PCA
 
-from model.FaceAlignment3D.TDDFA import TDDFA
 from utils.utils import get_euler_angles_from_rotation_matrix
 
 
-def compose_transformation(trans_sequence: list) -> transforms.transforms:
-    """Define a pipeline-like object that contains one or more transformation.
+def naive_pca(data):
+    """A simplified pca
+
     Args:
-        trans_sequence: absolute path of the image.
-    Returns:
-        transforms: A pipeline-like transformation sequence.
+        data: input data
+    Return:
+        components
     """
-    return transforms.Compose(trans_sequence.append(transforms.ToTensor()))
+    data -= np.mean(data, axis=0)
+    _, _, vt = np.linalg.svd(data, full_matrices=False)
+    return vt
 
 
-def get_direction_from_landmarks(landmarks: list) -> np.ndarray:
+def get_direction_from_landmarks(landmarks: np.ndarray) -> np.ndarray:
     """Get the direction of face from landmarks.
     Args:
         landmarks: a set of facial key points.
     Returns:
         3 vector which can indicate face direction.
     """
-    pca = PCA(n_components=2)
-    pca.fit(landmarks[17:])
-    direction_h = -pca.components_[1]
+    components = naive_pca(landmarks[17:])
+    direction_h = components[1]
     if np.dot(direction_h, landmarks[45]-landmarks[36]) < 0:
         direction_h *= -1
     direction_h /= np.linalg.norm(direction_h)
-    
-    direction_v = pca.components_[0]
+
+    direction_v = components[0]
     if np.dot(direction_v, landmarks[30]-landmarks[8]) < 0:
         direction_v *= -1
     direction_v /= np.linalg.norm(direction_v)
 
-    direction_d = np.cross(direction_h, direction_v)
+    direction_d = components[2]
     if np.dot(direction_d, landmarks[30] - (landmarks[31]+landmarks[35]) / 2) < 0:
         direction_d *= -1
     direction_d /= np.linalg.norm(direction_d)
@@ -80,32 +78,16 @@ def estimate_best_rotation(transformed: np.ndarray, origin: np.ndarray) -> np.nd
     return np.dot(u, vt)
 
 
-def estimate_head_pose(image: Image.Image, 
-                       face_roi: np.ndarray, 
-                       model: TDDFA,
-                       debug=False) -> np.ndarray:
+def estimate_head_pose(landmarks: np.ndarray, debug=False) -> np.ndarray:
     """Estimate head pose.
     Args:
-        image: PIL Image object.
-        model: Instance of FaceAlignment class.
+        landmarks: 3d face landmarks.
         debug: if true, return more information.
     Returns:
         yaw, pitch, roll of the face
     """
-    param_lst, roi_box_lst = model(image, [face_roi])
-    ver_lst = model.recon_vers(param_lst, roi_box_lst)
-
-    landmarks = ver_lst[0].T
-    for i in range(len(landmarks)):
-        landmarks[i][1] *= -1
-
     direction = get_direction_from_landmarks(landmarks)
-    rotation_matrix = estimate_best_rotation(
-        direction,
-        np.array(
-            [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
-        )
-    )
+    rotation_matrix = estimate_best_rotation(direction, np.identity(3))
     euler_angle = get_euler_angles_from_rotation_matrix(rotation_matrix)
     euler_angle *= np.array([-1, -1, 1])
     if debug:

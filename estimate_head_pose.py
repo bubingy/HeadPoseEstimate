@@ -3,7 +3,6 @@
 import os
 import time
 import argparse
-import webbrowser
 
 import numpy as np
 import torch
@@ -11,7 +10,7 @@ from PIL import Image
 
 from model.FaceDetection.FaceBoxes import FaceBoxes
 from model.FaceAlignment3D.TDDFA import TDDFA
-from model.deep_face import estimate_head_pose, \
+from model.pose import estimate_head_pose, \
     get_direction_from_landmarks
 from utils.utils import save_data_into_js
 
@@ -23,6 +22,12 @@ if __name__ == "__main__":
         '-i', '--image-path',
         default='./figures/frame_00093_rgb.png',
         help="path of image."
+    )
+    parser.add_argument(
+        '-d', '--draw',
+        action='store_true',
+        default=False,
+        help="whether to openbrowser to show landmarks and face orientation."
     )
     args = parser.parse_args()
 
@@ -46,12 +51,19 @@ if __name__ == "__main__":
     bound_box = bboxes[np.argmax(bboxes[:,4])]
     # calculate Euler angle
     tic = time.time()
-    rotation, landmarks = estimate_head_pose(img, bound_box, tddfa, True)
+    param_lst, roi_box_lst = tddfa(img, [bound_box])
+    ver_lst = tddfa.recon_vers(param_lst, roi_box_lst)
+    toc = time.time()
+    print(f'use {toc - tic}s to get 3d face landmarks')
+
+    landmarks = ver_lst[0]
+    tic = time.time()
+    rotation, landmarks = estimate_head_pose(landmarks, True)
     toc = time.time()
     print(f'use {toc - tic}s to estimate pose')
-    print('predict: ', rotation)
+    print('pose: ', rotation)
 
-    direction = get_direction_from_landmarks(landmarks)
+    direction = get_direction_from_landmarks(landmarks).tolist()
 
     landmarks -= landmarks[30]
     landmarks = landmarks.tolist()
@@ -64,15 +76,15 @@ if __name__ == "__main__":
     arrows = [
         {
             "position": landmarks[30],
-            "direction": direction_h.tolist()
+            "direction": direction_h
         },
         {
             "position": landmarks[30],
-            "direction": direction_v.tolist()
+            "direction": direction_v
         },
         {
             "position": landmarks[30],
-            "direction": direction_d.tolist()
+            "direction": direction_d
         }
     ]
 
@@ -85,4 +97,6 @@ if __name__ == "__main__":
         arrows,
         os.path.join(plot_dir, 'js', 'data.js')
     )
-    webbrowser.open(os.path.join(plot_dir, 'index.html'))
+    if args.draw:
+        import webbrowser
+        webbrowser.open(os.path.join(plot_dir, 'index.html'))

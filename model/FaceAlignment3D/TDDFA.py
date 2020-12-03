@@ -109,9 +109,12 @@ class TDDFA(object):
         ver_lst = []
         for param, roi_box in zip(param_lst, roi_box_lst):
             R, offset, alpha_shp, alpha_exp = _parse_param(param)
-            pts3d = R @ (self.bfm.u_base + self.bfm.w_shp_base @ alpha_shp + self.bfm.w_exp_base @ alpha_exp). \
+            pts3d = R @ (self.bfm.u_base + \
+                    self.bfm.w_shp_base @ alpha_shp + \
+                    self.bfm.w_exp_base @ alpha_exp). \
                 reshape(3, -1, order='F') + offset
             pts3d = similar_transform(pts3d, roi_box, size)
-            ver_lst.append(pts3d)
+            pts3d[1] *= -1
+            ver_lst.append(np.transpose(pts3d))
 
         return ver_lst
