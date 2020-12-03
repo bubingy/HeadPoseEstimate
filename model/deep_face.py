@@ -1,9 +1,7 @@
 """This module provides frontal face detection and face embedding extractor."""
 
 # coding=utf-8
-import json
 
-import torch
 from torchvision import transforms
 from PIL import Image
 import numpy as np
@@ -21,31 +19,6 @@ def compose_transformation(trans_sequence: list) -> transforms.transforms:
         transforms: A pipeline-like transformation sequence.
     """
     return transforms.Compose(trans_sequence.append(transforms.ToTensor()))
-
-
-def detect_face(img: Image.Image, model: torch.nn.Module) -> list:
-    """Find the face in the image.
-    Args:
-        img: PIL Image object.
-        model: A torch model for detect face.
-    Returns:
-        list: If a face is found.
-        empty list: No face is found in the image.
-    """
-    # detect faces in the image, return -1 if there is no face detected
-    try:
-        boxes, probs, _ = model.detect(img)
-    except Exception as e:
-        print(e)
-        return None
-
-    if len(boxes) == 0:
-        return None
-
-    # since in our scenario, there is only one face in the image
-    # we will choose the most likely one
-    choosen_idx = np.argmax(probs)
-    return boxes[choosen_idx]
 
 
 def get_direction_from_landmarks(landmarks: list) -> np.ndarray:
@@ -133,11 +106,9 @@ def estimate_head_pose(image: Image.Image,
             [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
         )
     )
-    Euler_angle = get_euler_angles_from_rotation_matrix(rotation_matrix)
-    Euler_angle *= np.array([-1, -1, 1])
+    euler_angle = get_euler_angles_from_rotation_matrix(rotation_matrix)
+    euler_angle *= np.array([-1, -1, 1])
     if debug:
-        return Euler_angle, landmarks
+        return euler_angle, landmarks
     else:
-        return Euler_angle
-
-
+        return euler_angle

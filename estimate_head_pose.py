@@ -1,7 +1,6 @@
 # coding=utf-8
 
 import os
-import json
 import time
 import argparse
 import webbrowser
@@ -51,7 +50,7 @@ if __name__ == "__main__":
     toc = time.time()
     print(f'use {toc - tic}s to estimate pose')
     print('predict: ', rotation)
-    
+
     direction = get_direction_from_landmarks(landmarks)
 
     landmarks -= landmarks[30]
@@ -82,8 +81,8 @@ if __name__ == "__main__":
         '3DPlot'
     )
     save_data_into_js(
-        landmarks, 
+        landmarks,
         arrows,
         os.path.join(plot_dir, 'js', 'data.js')
     )
-    # webbrowser.open(os.path.join(plot_dir, 'index.html'))
+    webbrowser.open(os.path.join(plot_dir, 'index.html'))

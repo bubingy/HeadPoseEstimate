@@ -56,7 +56,7 @@ class CRelu(nn.Module):
     def forward(self, x):
         x = self.conv(x)
         x = self.bn(x)
-        x = torch.cat([x, -x], 1)
+        x = torch.cat([x, -1 * x], 1)
         x = F.relu(x, inplace=True)
         return x
 
