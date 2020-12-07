@@ -8,10 +8,7 @@ import numpy as np
 import torch
 from PIL import Image
 
-
-from model.pose import estimate_head_pose, \
-    get_direction_from_landmarks
-from utils.utils import save_data_into_js
+from model.pose import estimate_head_pose
 
 
 if __name__ == "__main__":
@@ -19,7 +16,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='estimate head pose.')
     parser.add_argument(
         '-i', '--image-path',
-        default='./figures/frame_00093_rgb.png',
+        default='./figures/origin_image.png',
         help="path of image."
     )
     parser.add_argument(
@@ -77,41 +74,3 @@ if __name__ == "__main__":
     toc = time.time()
     print(f'use {toc - tic}s to estimate pose')
     print('pose: ', rotation)
-
-    direction = get_direction_from_landmarks(landmarks).tolist()
-
-    landmarks -= landmarks[30]
-    landmarks = landmarks.tolist()
-
-    arrows = []
-    direction_h = direction[0]
-    direction_v = direction[1]
-    direction_d = direction[2]
-
-    arrows = [
-        {
-            "position": landmarks[30],
-            "direction": direction_h
-        },
-        {
-            "position": landmarks[30],
-            "direction": direction_v
-        },
-        {
-            "position": landmarks[30],
-            "direction": direction_d
-        }
-    ]
-
-    plot_dir = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        '3DPlot'
-    )
-    save_data_into_js(
-        landmarks,
-        arrows,
-        os.path.join(plot_dir, 'js', 'data.js')
-    )
-    if args.draw:
-        import webbrowser
-        webbrowser.open(os.path.join(plot_dir, 'index.html'))

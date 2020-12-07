@@ -4,7 +4,36 @@
 
 import numpy as np
 
-from utils.utils import get_euler_angles_from_rotation_matrix
+
+def get_euler_angles_from_rotation_matrix(matrix):
+    """Convert rotation matrix to Euler angles
+    
+    Args:
+        matrix: rotation matrix
+    return: 
+        Euler angles
+    """
+    m00 = matrix[0][0]
+    m02 = matrix[0][2]
+    m10 = matrix[1][0]
+    m11 = matrix[1][1]
+    m12 = matrix[1][2]
+    m20 = matrix[2][0]
+    m22 = matrix[2][2]
+
+    if m10 > 0.998:
+        bank = 0
+        attitude = np.pi/2
+        heading = np.arctan2(m02, m22)
+    elif m10 < -0.998:
+        bank = 0
+        attitude = -np.pi/2
+        heading = np.arctan2(m02, m22)
+    else:
+        bank = np.arctan2(-m12, m11)
+        attitude = np.arcsin(m10)
+        heading = np.arctan2(-m20, m00)
+    return  np.rad2deg(np.array([attitude, heading, bank]))
 
 
 def naive_pca(data):

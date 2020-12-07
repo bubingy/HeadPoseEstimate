@@ -3,12 +3,7 @@
 This is a head pose estimation system based on 3d facial landmarks. Please realize it's not the most advanced method in this field. Util I created this repository, there have been some end-to-end solutions.
 
 ## Usage
-Run `python estimate_head_pose.py -i <path of image>`. The webbrowser will be opened to show 3d landmarks.
-
-Additionally, to test against images in AFLW2000, just run `python estimate_err.py -i <path of image> -l <label of path>`.  
-The three yellow arrows are `hd`, `vd` and `fd` while the purple arrows are real orientations.
-![origin image](figures/err.png)
-
+Run `python estimate_head_pose.py -i <path of image> --onnx`.
 
 ## How does it work
 ### 1. Get the 3d facial landmarks
@@ -44,9 +39,6 @@ However, the drawbacks are also obvious: first, if you require high precision, a
 The overlapped error can't be ignored.
 * Kabsch Algorithm: It is a method for calculating the optimal rotation matrix that minimizes the RMSD (root mean squared deviation) between two paired sets of 3D points. Just like PnP solver we talked above, Kabsch Algorithms is also supported by mathematical principles. Compared with PnP solver, Kabsch Algorithm gets rid of camera model, internal parameter matrix and make itself more practical in real scenes. Thanks to the [1adrianb/face-alignment](https://github.com/1adrianb/face-alignment), 3d facial landmarks are available currently and the pipeline is composed of 3 steps described in `How does it work`.
 
-In the end, let me point out the shortcomings of our mothod:
-1. The result depend on 3d facial landmarks. High error we'll get if the 3d facial landmarks are not accurate.
-2. It's not real-time. PCA, SVD are involved.
 
 ## Citation
 
