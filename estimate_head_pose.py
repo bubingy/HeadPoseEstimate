@@ -8,8 +8,7 @@ import numpy as np
 import torch
 from PIL import Image
 
-from model.FaceDetection.FaceBoxes import FaceBoxes
-from model.FaceAlignment3D.TDDFA import TDDFA
+
 from model.pose import estimate_head_pose, \
     get_direction_from_landmarks
 from utils.utils import save_data_into_js
@@ -24,10 +23,16 @@ if __name__ == "__main__":
         help="path of image."
     )
     parser.add_argument(
-        '-d', '--draw',
+        '--draw',
         action='store_true',
-        default=True,
+        default=False,
         help="whether to openbrowser to show landmarks and face orientation."
+    )
+    parser.add_argument(
+        '--onnx', 
+        action='store_true',
+        default=False,
+        help="whether to run on onnx runtime."
     )
     args = parser.parse_args()
 
@@ -37,8 +42,18 @@ if __name__ == "__main__":
     # initialize three networks
     # mtcnn: face detection
     # tddfa: get 68 3d face landmarks
-    face_boxes = FaceBoxes()
-    tddfa = TDDFA()
+    if args.onnx:
+        os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+        os.environ['OMP_NUM_THREADS'] = '4'
+        from model.FaceDetection.FaceBoxes_ONNX import FaceBoxes_ONNX
+        from model.FaceAlignment3D.TDDFA_ONNX import TDDFA_ONNX
+        face_boxes = FaceBoxes_ONNX()
+        tddfa = TDDFA_ONNX()
+    else:
+        from model.FaceDetection.FaceBoxes import FaceBoxes
+        from model.FaceAlignment3D.TDDFA import TDDFA
+        face_boxes = FaceBoxes()
+        tddfa = TDDFA()
 
     tic = time.time()
     bboxes = face_boxes(img)

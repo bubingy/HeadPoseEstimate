@@ -7,7 +7,7 @@ import pickle
 import numpy as np
 import onnxruntime
 
-from model.onnx import convert_to_onnx
+from model.FaceAlignment3D.onnx import convert_to_onnx
 from model.FaceAlignment3D.tddfa_util import _parse_param, similar_transform, parse_roi_box_from_bbox
 from model.FaceAlignment3D.bfm import BFMModel
 from model.FaceAlignment3D.bfm_onnx import convert_bfm_to_onnx
@@ -32,8 +32,8 @@ class TDDFA_ONNX(object):
         if not os.path.exists(bfm_onnx_fp):
             convert_bfm_to_onnx(
                 bfm_onnx_fp,
-                shape_dim=kvs.get('shape_dim', 40),
-                exp_dim=kvs.get('exp_dim', 10)
+                40,
+                10
             )
         self.bfm_session = onnxruntime.InferenceSession(bfm_onnx_fp, None)
 
@@ -43,9 +43,7 @@ class TDDFA_ONNX(object):
         self.u_base, self.w_shp_base, self.w_exp_base = bfm.u_base, bfm.w_shp_base, bfm.w_exp_base
 
         # config
-        self.gpu_mode = kvs.get('gpu_mode', False)
-        self.gpu_id = kvs.get('gpu_id', 0)
-        self.size = kvs.get('size', 120)
+        self.size = 120
 
         param_mean_std_fp = os.path.join(
             SCRIPT_HOME,
@@ -71,7 +69,7 @@ class TDDFA_ONNX(object):
         self.param_mean = r.get('mean')
         self.param_std = r.get('std')
 
-    def __call__(self, img_ori, objs, **kvs):
+    def __call__(self, img_ori, objs):
         # Crop image, forward to get the param
         param_lst = []
         roi_box_lst = []
@@ -95,7 +93,7 @@ class TDDFA_ONNX(object):
 
         return param_lst, roi_box_lst
 
-    def recon_vers(self, param_lst, roi_box_lst, **kvs):
+    def recon_vers(self, param_lst, roi_box_lst):
         size = self.size
 
         ver_lst = []
@@ -104,6 +102,7 @@ class TDDFA_ONNX(object):
             pts3d = R @ (self.u_base + self.w_shp_base @ alpha_shp + self.w_exp_base @ alpha_exp). \
                 reshape(3, -1, order='F') + offset
             pts3d = similar_transform(pts3d, roi_box, size)
-            ver_lst.append(pts3d)
+            pts3d[1] *= -1
+            ver_lst.append(np.transpose(pts3d))
 
         return ver_lst

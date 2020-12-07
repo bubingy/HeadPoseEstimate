@@ -2,4 +2,5 @@ torch
 torchvision
 pillow
 numpy
+onnxruntime
 scipy # only necessary when running estimate_err.py

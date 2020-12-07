@@ -6,10 +6,10 @@ import numpy as np
 from PIL import Image
 import onnxruntime
 
-from .prior_box import PriorBox
-from .faceboxes_utils import cpu_nms, decode
-from .config import cfg
-from .onnx import convert_to_onnx
+from model.FaceDetection.prior_box import PriorBox
+from model.FaceDetection.faceboxes_utils import cpu_nms, decode
+from model.FaceDetection.config import cfg
+from model.FaceDetection.onnx import convert_to_onnx
 
 
 # some global configs
@@ -107,5 +107,5 @@ class FaceBoxes_ONNX(object):
                 bbox = [xmin, ymin, xmax, ymax, score]
                 det_bboxes.append(bbox)
 
-        return det_bboxes
+        return np.array(det_bboxes)
 
