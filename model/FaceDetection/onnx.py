@@ -25,10 +25,11 @@ def convert_to_onnx(onnx_path):
         (dummy_input,),
         onnx_path,
         input_names=['input'],
-        output_names=['output'],
+        output_names=['loc', 'conf'],
         dynamic_axes={
             'input': [0, 2, 3],
-            'output': [0]
+            'loc': [0, 1],
+            'conf': [0, 1]
         },
         do_constant_folding=True
     )

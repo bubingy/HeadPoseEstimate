@@ -1,5 +1,6 @@
 # coding: utf-8
 
+import time
 import os.path as osp
 
 import numpy as np
@@ -18,10 +19,6 @@ top_k = 5000
 keep_top_k = 750
 nms_threshold = 0.3
 vis_thres = 0.5
-resize = 1
-
-scale_flag = True
-HEIGHT, WIDTH = 720, 1080
 
 make_abs_path = lambda fn: osp.join(osp.dirname(osp.realpath(__file__)), fn)
 onnx_path = make_abs_path('weights/FaceBoxesProd.onnx')
@@ -39,24 +36,7 @@ class FaceBoxes_ONNX(object):
 
         # scaling to speed up
         scale = 1
-        if scale_flag:
-            h, w = img_raw.shape[:2]
-            if h > HEIGHT:
-                scale = HEIGHT / h
-            if w * scale > WIDTH:
-                scale *= WIDTH / (w * scale)
-            # print(scale)
-            if scale == 1:
-                img_raw_scale = img_raw
-            else:
-                h_s = int(scale * h)
-                w_s = int(scale * w)
-                img_raw_scale = Image.fromarray(img_raw).resize((w_s, h_s))
-
-
-            img = np.float32(img_raw_scale)
-        else:
-            img = np.float32(img_raw)
+        img = np.float32(img_raw)
 
         # forward
         im_height, im_width, _ = img.shape
@@ -66,26 +46,19 @@ class FaceBoxes_ONNX(object):
         img = img.transpose(2, 0, 1)
         img = img[np.newaxis, ...]
 
-        # loc, conf = self.net(img)  # forward pass
-        out = self.session.run(None, {'input': img})
-        loc, conf = out[0], out[1]
+        loc, conf = self.session.run(None, {'input': img})
 
         priorbox = PriorBox(image_size=(im_height, im_width))
         priors = priorbox.forward()
         boxes = decode(np.squeeze(loc, axis=0), priors, cfg['variance'])
-        if scale_flag:
-            boxes = boxes * scale_bbox / scale / resize
-        else:
-            boxes = boxes * scale_bbox / resize
+        boxes = boxes * scale_bbox
 
         scores = conf[0][:, 1]
-        # scores = conf.squeeze(0).data.cpu().numpy()[:, 1]
 
         # ignore low scores
         inds = np.where(scores > confidence_threshold)[0]
         boxes = boxes[inds]
         scores = scores[inds]
-
         # keep top-K before NMS
         order = scores.argsort()[::-1][:top_k]
         boxes = boxes[order]
@@ -108,4 +81,3 @@ class FaceBoxes_ONNX(object):
                 det_bboxes.append(bbox)
 
         return np.array(det_bboxes)
-

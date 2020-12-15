@@ -28,7 +28,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--onnx', 
         action='store_true',
-        default=False,
+        default=True,
         help="whether to run on onnx runtime."
     )
     args = parser.parse_args()
@@ -55,7 +55,6 @@ if __name__ == "__main__":
     tic = time.time()
     bboxes = face_boxes(img)
     toc = time.time()
-    print(f'use {toc - tic}s to detect face')
     if len(bboxes) == 0 or bboxes is None:
         print('no face detected.')
         exit(0)
@@ -66,11 +65,9 @@ if __name__ == "__main__":
     param_lst, roi_box_lst = tddfa(img, [bound_box])
     ver_lst = tddfa.recon_vers(param_lst, roi_box_lst)
     toc = time.time()
-    print(f'use {toc - tic}s to get 3d face landmarks')
 
     landmarks = ver_lst[0]
     tic = time.time()
     rotation, landmarks = estimate_head_pose(landmarks, True)
     toc = time.time()
-    print(f'use {toc - tic}s to estimate pose')
     print('pose: ', rotation)

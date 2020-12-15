@@ -12,7 +12,6 @@ class PriorBox(object):
         super(PriorBox, self).__init__()
         self.min_sizes = cfg['min_sizes']
         self.steps = cfg['steps']
-        self.clip = cfg['clip']
         self.image_size = image_size
         self.feature_maps = [[np.ceil(self.image_size[0] / step), np.ceil(self.image_size[1] / step)] for step in self.steps]
 
@@ -26,14 +25,16 @@ class PriorBox(object):
                     s_ky = min_size / self.image_size[0]
                     if min_size == 32:
                         dense_cx = [x * self.steps[k] / self.image_size[1] for x in
-                                    [j + 0, j + 0.25, j + 0.5, j + 0.75]]
+                                    [j, j + 0.25, j + 0.5, j + 0.75]]
                         dense_cy = [y * self.steps[k] / self.image_size[0] for y in
-                                    [i + 0, i + 0.25, i + 0.5, i + 0.75]]
+                                    [i, i + 0.25, i + 0.5, i + 0.75]]
                         for cy, cx in product(dense_cy, dense_cx):
                             anchors += [cx, cy, s_kx, s_ky]
                     elif min_size == 64:
-                        dense_cx = [x * self.steps[k] / self.image_size[1] for x in [j + 0, j + 0.5]]
-                        dense_cy = [y * self.steps[k] / self.image_size[0] for y in [i + 0, i + 0.5]]
+                        dense_cx = [x * self.steps[k] / self.image_size[1] for x in 
+                        [j, j + 0.5]]
+                        dense_cy = [y * self.steps[k] / self.image_size[0] for y in 
+                        [i, i + 0.5]]
                         for cy, cx in product(dense_cy, dense_cx):
                             anchors += [cx, cy, s_kx, s_ky]
                     else:
@@ -42,6 +43,4 @@ class PriorBox(object):
                         anchors += [cx, cy, s_kx, s_ky]
 
         output = np.reshape(np.array(anchors), (-1, 4)) 
-        if self.clip:
-            output = np.clip(output, 0, 1)
         return output

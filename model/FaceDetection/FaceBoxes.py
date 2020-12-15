@@ -18,7 +18,6 @@ top_k = 5000
 keep_top_k = 750
 nms_threshold = 0.3
 vis_thres = 0.5
-resize = 1
 
 scale_flag = True
 HEIGHT, WIDTH = 720, 1080
@@ -40,30 +39,11 @@ class FaceBoxes:
         img_raw = img_.copy()
 
         # scaling to speed up
-        scale = 1
-        if scale_flag:
-            h, w = img_raw.shape[:2]
-            if h > HEIGHT:
-                scale = HEIGHT / h
-            if w * scale > WIDTH:
-                scale *= WIDTH / (w * scale)
-            # print(scale)
-            if scale == 1:
-                img_raw_scale = img_raw
-            else:
-                h_s = int(scale * h)
-                w_s = int(scale * w)
-                # print(h_s, w_s)
-                img_raw_scale = Image.fromarray(img_raw).resize((w_s, h_s))
-                # print(img_raw_scale.shape)
-
-            img = np.float32(img_raw_scale)
-        else:
-            img = np.float32(img_raw)
+        img = np.float32(img_raw)
 
         # forward
-        im_height, im_width, _ = img.shape
-        scale_bbox = np.array([img.shape[1], img.shape[0], img.shape[1], img.shape[0]])
+        im_height, im_width, _ = np.shape(img)
+        scale_bbox = np.array([im_width, im_height, im_width, im_height])
         img -= (104, 117, 123)
         img = img.transpose(2, 0, 1)
         img = torch.from_numpy(img).unsqueeze(0)
@@ -72,10 +52,7 @@ class FaceBoxes:
         priorbox = PriorBox(image_size=(im_height, im_width))
         priors = priorbox.forward()
         boxes = decode(loc.data.squeeze(0).numpy(), priors, cfg['variance'])
-        if scale_flag:
-            boxes = boxes * scale_bbox / scale / resize
-        else:
-            boxes = boxes * scale_bbox / resize
+        boxes = boxes * scale_bbox
 
         scores = conf.squeeze(0).data.cpu().numpy()[:, 1]
 
