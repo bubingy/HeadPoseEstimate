@@ -116,11 +116,11 @@ def estimate_head_pose(landmarks: np.ndarray, debug=False) -> np.ndarray:
     Returns:
         yaw, pitch, roll of the face
     """
-    direction = get_direction_from_landmarks(landmarks)
-    rotation_matrix = estimate_best_rotation(direction, np.identity(3))
+    directions = get_direction_from_landmarks(landmarks)
+    rotation_matrix = estimate_best_rotation(directions, np.identity(3))
     euler_angle = get_euler_angles_from_rotation_matrix(rotation_matrix)
     euler_angle *= np.array([-1, -1, 1])
     if debug:
-        return euler_angle, landmarks
+        return euler_angle, directions, landmarks
     else:
         return euler_angle

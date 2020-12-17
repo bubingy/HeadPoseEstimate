@@ -4,6 +4,8 @@ __author__ = 'cleardusk'
 
 import os
 import pickle
+
+import cv2 as cv
 import numpy as np
 import onnxruntime
 
@@ -76,11 +78,11 @@ class TDDFA_ONNX(object):
 
         for obj in objs:
             roi_box = parse_roi_box_from_bbox(obj)
-
             roi_box_lst.append(roi_box)
-            img = img_ori.crop(roi_box)
-            img = img.resize((self.size, self.size))
-            img = np.array(img)
+            x_min,y_min,x_max,y_max = int(roi_box[0]), int(roi_box[1]), \
+                int(roi_box[2]), int(roi_box[3])
+            img = img_ori[y_min:y_max, x_min:x_max]
+            img = cv.resize(img, (self.size, self.size))
             img = img.astype(np.float32).transpose(2, 0, 1)[np.newaxis, ...]
             img = (img - 127.5) / 128.
 
@@ -102,7 +104,7 @@ class TDDFA_ONNX(object):
             pts3d = R @ (self.u_base + self.w_shp_base @ alpha_shp + self.w_exp_base @ alpha_exp). \
                 reshape(3, -1, order='F') + offset
             pts3d = similar_transform(pts3d, roi_box, size)
-            pts3d[1] *= -1
+            pts3d[1, :] *= -1
             ver_lst.append(np.transpose(pts3d))
 
         return ver_lst

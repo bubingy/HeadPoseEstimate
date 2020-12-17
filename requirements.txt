@@ -1,6 +1,5 @@
 torch
 torchvision
-pillow
 numpy
 onnxruntime
 opencv-python

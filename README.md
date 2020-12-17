@@ -7,7 +7,7 @@ Run `python estimate_head_pose.py -i <path of image> --onnx`.
 
 ## How does it work
 ### 1. Get the 3d facial landmarks
-Thanks for cleardusk's [excellent work](https://github.com/cleardusk/3DDFA_V2), we can easily get the 3d facial landmarks.
+First, thanks for cleardusk's excellent work on [3DDFA_V2](https://github.com/cleardusk/3DDFA_V2). With TDDFA model, we can get 3d facial landmarks quickly and precisely.
 ### 2. Determine direction of face
 The horizontal direction `hd` and vertical direction `vd` of face can be determined by PCA. Let's notate facial orientation with `fd`, then `fd = hd x vd`. Note: `x` is cross products.  
 Here is an example. The origin image(from Biwi_Kinect_Head_Pose_Database):
@@ -21,7 +21,7 @@ The three yellow arrows are `hd`, `vd` and `fd`.
 ![landmarks](figures/landmarks.png)
 ### 3. Estimate rotation
 Normalize `hd`, `vd` and `fd`, make them as unit vectors.   
-Rotation transform can be estimated with Kabsch algorithm.
+Rotation matrix can be estimated with Kabsch algorithm.
 
 ## TODO
 - [ ] support video

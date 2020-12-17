@@ -1,15 +1,13 @@
 # coding=utf-8
 
 import os
-import time
 import argparse
 
 import numpy as np
 import torch
-from PIL import Image
 
 from model.pose import estimate_head_pose
-
+from model.plot import cv, draw_pose, plot_image
 
 if __name__ == "__main__":
     torch.set_grad_enabled(False) # disable auto grad
@@ -20,12 +18,6 @@ if __name__ == "__main__":
         help="path of image."
     )
     parser.add_argument(
-        '--draw',
-        action='store_true',
-        default=False,
-        help="whether to openbrowser to show landmarks and face orientation."
-    )
-    parser.add_argument(
         '--onnx', 
         action='store_true',
         default=True,
@@ -34,7 +26,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     img_path = args.image_path
-    img = Image.open(img_path)
+    img = cv.imread(img_path)
 
     # initialize three networks
     # mtcnn: face detection
@@ -52,22 +44,27 @@ if __name__ == "__main__":
         face_boxes = FaceBoxes()
         tddfa = TDDFA()
 
-    tic = time.time()
     bboxes = face_boxes(img)
-    toc = time.time()
     if len(bboxes) == 0 or bboxes is None:
         print('no face detected.')
         exit(0)
 
     bound_box = bboxes[np.argmax(bboxes[:,4])]
     # calculate Euler angle
-    tic = time.time()
     param_lst, roi_box_lst = tddfa(img, [bound_box])
     ver_lst = tddfa.recon_vers(param_lst, roi_box_lst)
-    toc = time.time()
 
-    landmarks = ver_lst[0]
-    tic = time.time()
-    rotation, landmarks = estimate_head_pose(landmarks, True)
-    toc = time.time()
-    print('pose: ', rotation)
+    landmarks = ver_lst[0].copy()
+    euler_angle, directions, landmarks = estimate_head_pose(
+        landmarks, True
+    )
+    print(euler_angle)
+
+    show_img = draw_pose(
+        img,
+        directions,
+        np.mean(landmarks, axis=0),
+        bound_box=bound_box,
+        landmarks=landmarks
+    )
+    plot_image(show_img)

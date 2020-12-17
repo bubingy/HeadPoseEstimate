@@ -5,6 +5,7 @@ __author__ = 'cleardusk'
 import os
 import pickle
 
+import cv2 as cv
 import numpy as np
 import torch
 from torchvision.transforms import Compose
@@ -90,8 +91,10 @@ class TDDFA(object):
         for obj in objs:
             roi_box = parse_roi_box_from_bbox(obj)
             roi_box_lst.append(roi_box)
-            img = img_ori.crop(roi_box)
-            img = img.resize((self.size, self.size))
+            x_min,y_min,x_max,y_max = int(roi_box[0]), int(roi_box[1]), \
+                int(roi_box[2]), int(roi_box[3])
+            img = img_ori[y_min:y_max, x_min:x_max]
+            img = cv.resize(img, (self.size, self.size))
             img = np.array(img)
             inp = self.transform(img).unsqueeze(0)
 
@@ -114,7 +117,7 @@ class TDDFA(object):
                     self.bfm.w_exp_base @ alpha_exp). \
                 reshape(3, -1, order='F') + offset
             pts3d = similar_transform(pts3d, roi_box, size)
-            pts3d[1] *= -1
+            pts3d[1, :] *= -1
             ver_lst.append(np.transpose(pts3d))
 
         return ver_lst
