@@ -1,7 +1,6 @@
 # coding=utf-8
 
 import os
-import time
 import argparse
 
 import numpy as np
@@ -16,7 +15,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='estimate head pose.')
     parser.add_argument(
         '-i', '--input-video',
-        default='./figures/Pence.gif',
+        default='./figures/TheHill.gif',
         help="path of input video."
     )
     parser.add_argument(
@@ -55,7 +54,20 @@ if __name__ == "__main__":
 
     video_path = args.input_video
     cap = cv.VideoCapture(video_path)
+
     fps = cap.get(cv.CAP_PROP_FPS)
+    prefix_path, suffix_path = os.path.splitext(video_path)
+    output_path = prefix_path + '_out.mp4'
+    out = cv.VideoWriter(
+        output_path,
+        cv.VideoWriter_fourcc(*'XVID'),
+        int(fps),
+        (
+            int(cap.get(cv.CAP_PROP_FRAME_WIDTH)),
+            int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
+        )
+    )
+    frames = []
     while(cap.isOpened()):
         ret, img = cap.read()
         if not ret:
@@ -82,8 +94,11 @@ if __name__ == "__main__":
             show_bbox=args.show_boundbox,
             show_landmarks=args.show_landmarks
         )
+        out.write(show_img)
+        frames.append(show_img)
         cv.imshow('pose', show_img)
-        if cv.waitKey(1) & 0xFF == ord('q'):
+        if cv.waitKey(10) & 0xFF == ord('q'):
             break
+    out.release()
     cap.release()
     cv.destroyAllWindows()

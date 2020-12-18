@@ -81,4 +81,7 @@ if __name__ == "__main__":
         show_bbox=args.show_boundbox,
         show_landmarks=args.show_landmarks
     )
+    prefix_path, suffix_path = os.path.splitext(img_path)
+    output_path = prefix_path + '_out' + suffix_path
+    cv.imwrite(output_path, show_img)
     plot_image(show_img)

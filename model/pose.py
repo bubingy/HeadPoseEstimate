@@ -77,7 +77,7 @@ def get_direction_from_landmarks(landmarks_lst: np.ndarray) -> np.ndarray:
         if np.dot(direction_d, landmarks[30] - (landmarks[31]+landmarks[35]) / 2) < 0:
             direction_d *= -1
         direction_d /= np.linalg.norm(direction_d)
-    direction_lst.append(np.array([direction_h, direction_v, direction_d]))
+        direction_lst.append(np.array([direction_h, direction_v, direction_d]))
     return np.array(direction_lst)
 
 

@@ -98,10 +98,9 @@ def _parse_param(param):
 
 def parse_roi_box_from_bbox(bbox):
     left, top, right, bottom = bbox[:4]
-    old_size = (right - left + bottom - top) / 2
+    size = min(right - left, bottom - top)
     center_x = right - (right - left) / 2.0
-    center_y = bottom - (bottom - top) / 2.0 + old_size * 0.14
-    size = int(old_size * 1.58)
+    center_y = bottom - (bottom - top) / 2.0
 
     roi_box = [0] * 4
     roi_box[0] = center_x - size / 2

@@ -25,7 +25,7 @@ Normalize `hd`, `vd` and `fd`, make them as unit vectors.
 Rotation matrix can be estimated with Kabsch algorithm.
 
 ## TODO
-- [ ] support video
+- [ ] onnxruntime-js
 
 ## Citation
 
