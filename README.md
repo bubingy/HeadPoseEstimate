@@ -3,7 +3,8 @@
 This is a head pose estimation system based on 3d facial landmarks. Please realize it's not the most advanced method in this field. Util I created this repository, there have been some end-to-end solutions.
 
 ## Usage
-Run `python estimate_head_pose.py -i <path of image> --onnx`.
+For image, run `python estimate_head_pose.py -i <path of image> --onnx`.  
+For video, run `python estimate_head_pose_video.py -i <path of video> --onnx`.
 
 ## How does it work
 ### 1. Get the 3d facial landmarks

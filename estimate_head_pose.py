@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import os
+import time
 import argparse
 
 import numpy as np
@@ -13,27 +14,37 @@ if __name__ == "__main__":
     torch.set_grad_enabled(False) # disable auto grad
     parser = argparse.ArgumentParser(description='estimate head pose.')
     parser.add_argument(
-        '-i', '--image-path',
+        '-i', '--input-image',
         default='./figures/origin_image.png',
         help="path of image."
     )
     parser.add_argument(
-        '--onnx', 
+        '--show-boundbox',
         action='store_true',
-        default=True,
+        default=False,
+        help="whether to show bound box of face."
+    )
+    parser.add_argument(
+        '--show-landmarks',
+        action='store_true',
+        default=False,
+        help="whether to show facial landmarks."
+    )
+    parser.add_argument(
+        '--onnx',
+        action='store_true',
+        default=False,
         help="whether to run on onnx runtime."
     )
     args = parser.parse_args()
 
-    img_path = args.image_path
+    img_path = args.input_image
     img = cv.imread(img_path)
 
-    # initialize three networks
-    # mtcnn: face detection
-    # tddfa: get 68 3d face landmarks
+    # initialize networks
     if args.onnx:
         os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-        os.environ['OMP_NUM_THREADS'] = '4'
+        os.environ['OMP_NUM_THREADS'] = '1'
         from model.FaceDetection.FaceBoxes_ONNX import FaceBoxes_ONNX
         from model.FaceAlignment3D.TDDFA_ONNX import TDDFA_ONNX
         face_boxes = FaceBoxes_ONNX()
@@ -44,27 +55,30 @@ if __name__ == "__main__":
         face_boxes = FaceBoxes()
         tddfa = TDDFA()
 
+    tic = time.time()
     bboxes = face_boxes(img)
     if len(bboxes) == 0 or bboxes is None:
         print('no face detected.')
         exit(0)
 
-    bound_box = bboxes[np.argmax(bboxes[:,4])]
     # calculate Euler angle
-    param_lst, roi_box_lst = tddfa(img, [bound_box])
+    param_lst, roi_box_lst = tddfa(img, bboxes)
     ver_lst = tddfa.recon_vers(param_lst, roi_box_lst)
 
-    landmarks = ver_lst[0].copy()
-    euler_angle, directions, landmarks = estimate_head_pose(
-        landmarks, True
+    euler_angle_lst, directions_lst, landmarks_lst = estimate_head_pose(
+        ver_lst, True
     )
-    print(euler_angle)
+    toc = time.time()
+    for euler_angle in euler_angle_lst:
+        roll, yaw, pitch = euler_angle
+        print(f'roll: {roll}, yaw: {yaw}, pitch: {pitch}. cost time: {toc-tic}s')
 
     show_img = draw_pose(
         img,
-        directions,
-        np.mean(landmarks, axis=0),
-        bound_box=bound_box,
-        landmarks=landmarks
+        directions_lst,
+        bboxes,
+        landmarks_lst,
+        show_bbox=args.show_boundbox,
+        show_landmarks=args.show_landmarks
     )
     plot_image(show_img)

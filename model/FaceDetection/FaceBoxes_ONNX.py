@@ -35,7 +35,6 @@ class FaceBoxes_ONNX(object):
         img_raw = img_.copy()
 
         # scaling to speed up
-        scale = 1
         img = np.float32(img_raw)
 
         # forward
