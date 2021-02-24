@@ -1,6 +1,6 @@
 # HeadPoseEstimate
 ## Introduce
-This is a head pose estimation system based on 3d facial landmarks. Please realize it's not the most advanced method in this field. Util I created this repository, there have been some end-to-end solutions.
+This is a head pose estimation system based on 3d facial landmarks. Please realize it's not the most advanced method in this field. Until I created this repository, there have been some end-to-end solutions.
 
 ## Usage
 For image, run `python estimate_head_pose.py -i <path of image> --onnx`.  
