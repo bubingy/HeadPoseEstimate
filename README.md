@@ -24,9 +24,6 @@ The three yellow arrows are `hd`, `vd` and `fd`.
 Normalize `hd`, `vd` and `fd`, make them as unit vectors.   
 Rotation matrix can be estimated with Kabsch algorithm.
 
-## TODO
-- [ ] onnxruntime-js
-
 ## Citation
 
     @inproceedings{guo2020towards,
