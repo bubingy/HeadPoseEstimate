@@ -52,6 +52,6 @@ def draw_pose(img_, directions_lst, bound_box_lst, landmarks_lst, show_bbox=Fals
     return img
 
 
-def plot_image(img, win_name='pose'):
-    cv.imshow(win_name, cv.resize(img, (1920, 1080)))
+def plot_image(img, win_size, win_name='pose'):
+    cv.imshow(win_name, cv.resize(img, win_size))
     cv.waitKey()

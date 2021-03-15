@@ -3,6 +3,7 @@
 import os
 import time
 import argparse
+from matplotlib.pyplot import pink
 
 import numpy as np
 import torch
@@ -60,6 +61,7 @@ if __name__ == "__main__":
     if len(bboxes) == 0 or bboxes is None:
         print('no face detected.')
         exit(0)
+    print(f'{len(bboxes)} faces detected.')
 
     # calculate Euler angle
     param_lst, roi_box_lst = tddfa(img, bboxes)
@@ -84,4 +86,4 @@ if __name__ == "__main__":
     prefix_path, suffix_path = os.path.splitext(img_path)
     output_path = prefix_path + '_out' + suffix_path
     cv.imwrite(output_path, show_img)
-    plot_image(show_img)
+    plot_image(show_img, (1440, 900))
