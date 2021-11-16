@@ -3,9 +3,7 @@
 import os
 import time
 import argparse
-from matplotlib.pyplot import pink
 
-import numpy as np
 import torch
 
 from model.pose import estimate_head_pose

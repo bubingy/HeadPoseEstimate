@@ -3,7 +3,6 @@
 import os
 import argparse
 
-import numpy as np
 import torch
 
 from model.pose import estimate_head_pose
